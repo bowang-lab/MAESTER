@@ -1,0 +1,34 @@
+MODEL:
+  name: "MAESTER"
+  img_size: 80
+  patch_size: 5
+  embed: 192
+  embed_dim: 192
+  depth: 14
+  num_heads: 1
+  decoder_embed_dim: 128
+  decoder_depth: 7
+  decoder_num_heads: 8
+  mlp_ratio: 2.0
+  mask_ratio: 0.5
+  pos_encode_w: 0.08
+  central_patch: 4
+DATASET:
+  name: "BetaSegDataset2D"
+  path_list:
+    - "../dataset/high_c1_source_tensor"
+    - "../dataset/high_c2_source_tensor"
+    - "../dataset/high_c3_source_tensor"
+  pad: 4
+  aug: "betaAug2D"
+  num_workers: 2
+  batch_size: 32
+  vol_size: 80
+  patch_size: 5
+ENGINE:
+  name: "train_engine"
+  epoch: 2800
+OPTIM:
+  name: "adamw"
+  lr: 1.5e-4
+  reg_w: 1.0e-5
