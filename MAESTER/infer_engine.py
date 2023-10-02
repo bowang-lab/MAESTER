@@ -115,9 +115,10 @@ def run_inference(
         iter_list = torch.tensor(iter_list)
         d_list = iter_list.split(int(cfg["DATASET"]["batch_size"] * 2))
 
-        h_patch = np.floor(adjH / (central_patch * pix_size)) - 1
-        w_patch = np.floor(adjW / (central_patch * pix_size)) - 1
-        total_patch = int(h_patch * w_patch) + 1
+        _win = vol_size // patch_size
+        h_patch = np.floor(adjH - _win + 1) - _win
+        w_patch = np.floor(adjW - _win + 1) - _win
+        total_patch = int((h_patch * w_patch + 2 * vol_size + 2 * _win) / _win)
 
         for b, i_d in enumerate(d_list):
             print(f"\ninferring batch #{b + 1} of {len(d_list)}")
@@ -130,7 +131,7 @@ def run_inference(
                 w_count = 0
 
                 while i_w < adjW - vol_size + 1:
-                    print(f"\t patch #{patch_count} of {total_patch}", end="\r")
+                    print(f"\t patch #{patch_count} of ~ {total_patch}", end="\r")
                     sample = scr[
                         i_d, i_h: i_h + vol_size, i_w: i_w + vol_size
                     ].to(device)
@@ -166,5 +167,7 @@ def run_inference(
                         patch_count += 1
                 else:
                     i_h += 1
+
+            total_patch = patch_count
 
     print(f"\n\nRank {rank}: Inference finished in {(time.time() - t1) / 60: .2f} minutes.")
