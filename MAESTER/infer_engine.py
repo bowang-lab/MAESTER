@@ -1,12 +1,8 @@
-import argparse
-import os
 import time
 import torch
-import sys
 from model import *
 from torch.nn import functional as F
 import numpy as np
-
 
 
 def define_embed_idx(side_patch_num, central_patch_num):
@@ -110,8 +106,6 @@ def run_inference(
         iter_list = list(split(range(0, orgD), ngpus_per_node))[rank]
         embed_idx = define_embed_idx(target_size // patch_size, patch_size)
 
-        # print(f"rank {rank} ====> getting partition: [{iter_list[0]}, {iter_list[-1]}]")
-
         iter_list = torch.tensor(iter_list)
         d_list = iter_list.split(int(cfg["DATASET"]["batch_size"] * 2))
 
@@ -141,6 +135,7 @@ def run_inference(
                         rep, feature_storage, i_h, i_w, i_d, index_h, index_w, embed_idx
                     )
                     w_count += 1
+                    patch_count += 1
 
                     del sample
                     del rep
@@ -152,8 +147,6 @@ def run_inference(
                     ):
                         i_w += central_patch * pix_size - pix_size
                         w_count = 0
-                        if h_count == 0:
-                            patch_count += 1
                     else:
                         i_w += 1
                 h_count += 1
@@ -163,11 +156,12 @@ def run_inference(
                 ):
                     i_h += central_patch * pix_size - pix_size
                     h_count = 0
-                    if w_count == 0:
-                        patch_count += 1
                 else:
                     i_h += 1
 
-            total_patch = patch_count
+            total_patch = patch_count  # ;D
 
-    print(f"\n\nRank {rank}: Inference finished in {(time.time() - t1) / 60: .2f} minutes.")
+    print(
+        f"\n\nRank {rank}: Inference finished in "
+        f"{(time.time() - t1) / 60: .2f} minutes."
+    )
